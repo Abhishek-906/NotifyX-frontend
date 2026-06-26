@@ -7,7 +7,7 @@ function DashboardPage() {
   useEffect(()=>{  
     const fetchAdminCount = async () => {
       try {
-        const res = await getChildCount("ADMIN");
+        const res = await getChildCount();
         setTotalAdmins(res.data.data);
         console.log("totalAdmins",totalAdmins);
       } catch (error) {

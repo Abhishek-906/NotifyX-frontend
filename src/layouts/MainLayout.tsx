@@ -13,6 +13,7 @@ function MainLayout() {
     const handleLogout = async () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
+
         disconnectSocket();
         navigate("/login");
     };

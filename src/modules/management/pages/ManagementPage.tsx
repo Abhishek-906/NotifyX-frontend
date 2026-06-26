@@ -1,8 +1,35 @@
 import { useState } from "react";
+import {createUser} from '../../../services/user.api';
+import { toast } from "react-toastify";
 
 function ManagementPage() {
   const [showAdminModal, setShowAdminModal] = useState(false);
+  const [ fullName, setFullName ] = useState("");
+  const [ email, setEmail ] = useState("");
+  const [ password, setPassword ] = useState("");
 
+   const addUser= async(e:React.FormEvent)=>{
+    e.preventDefault();
+    try{
+      await  createUser(
+        {fullName, email, password}
+      );
+      toast.success('User Create successfully');
+      setFullName("");
+      setEmail("");
+      setPassword("");
+      setShowAdminModal(false);
+    }catch (err: any) {
+      const message = err?.response?.data?.message;
+    
+      toast.error(
+        Array.isArray(message)
+          ? message[0]
+          : message || "Something went wrong"
+      );
+    }
+  }
+  
 
   return (
     <>
@@ -30,7 +57,7 @@ function ManagementPage() {
             </div>
 
             {/* Form */}
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={addUser}>
 
               {/* Full Name */}
               <div>
@@ -41,6 +68,7 @@ function ManagementPage() {
                 <input
                   type="text"
                   placeholder="Enter full name"
+                  onChange={(e)=>setFullName(e.target.value)}
                   className="w-full border px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -54,6 +82,7 @@ function ManagementPage() {
                 <input
                   type="email"
                   placeholder="Enter email"
+                  onChange={(e)=>setEmail(e.target.value)}
                   className="w-full border px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -67,6 +96,7 @@ function ManagementPage() {
                 <input
                   type="password"
                   placeholder="Enter password"
+                  onChange={(e)=>setPassword(e.target.value)}
                   className="w-full border px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
