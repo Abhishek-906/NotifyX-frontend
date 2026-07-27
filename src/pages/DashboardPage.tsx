@@ -1,21 +1,26 @@
 import { useState, useEffect } from "react";
-import { getChildCount }  from '../services/user.api';
+import { getChildCount } from '../services/user.api';
+import { getCurrentUser } from '../utils/auth';
 
 function DashboardPage() {
-  const [ totalAdmins, setTotalAdmins ] = useState(0);
+  const [totalAdmins, setTotalAdmins] = useState(0);
+  const loggedInUser = getCurrentUser();
 
-  useEffect(()=>{  
+  useEffect(() => {
     const fetchAdminCount = async () => {
+      console.log("reacg")
       try {
         const res = await getChildCount();
         setTotalAdmins(res.data.data);
-        console.log("totalAdmins",totalAdmins);
+        console.log("totalAdmins", totalAdmins);
       } catch (error) {
         console.log(error);
       }
     };
 
-    fetchAdminCount();
+    if (loggedInUser.role != 'USER') {
+      fetchAdminCount();
+    }
   }, []);
 
 

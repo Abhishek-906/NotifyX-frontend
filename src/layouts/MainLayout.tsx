@@ -2,10 +2,17 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { getCurrentUser } from '../utils/auth'
 import { disconnectSocket } from "../services/socket";
+import NotificationBell from "../modules/notification/components/notificationBell.tsx";
+import { getNotifications } from "../services/notification.api.ts";
+import { setNotifications } from "../features/notification/notificationSlice.ts";
+import { useDispatch } from "react-redux";
+
+
 
 function MainLayout() {
     const user = getCurrentUser();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -20,6 +27,15 @@ function MainLayout() {
 
     const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const res = await getNotifications();
+            dispatch(setNotifications(res.data.data));
+        }
+        fetchData();
+
+    }, []);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -42,7 +58,7 @@ function MainLayout() {
     }, []);
 
     return (
-        <div>
+        <div className="min-h-screen flex flex-col" >
             <header className="sticky top-0 z-50 bg-white shadow-md py-4 px-6 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <button
@@ -53,34 +69,39 @@ function MainLayout() {
                     </button>
                     <h2>NotifyX</h2>
                 </div>
-                <div ref={dropdownRef} className="relative">
-                    <button
-                        onClick={() => setShowDropdown(prev => !prev)}
-                    >
-                        👤 {user.fullName}
-                    </button>
 
-                    {showDropdown && (
-                        <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg">
-                            <button
-                                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                            >
-                                Profile
-                            </button>
+                <div id="rightSection" className="flex flex-row ">
+                    <NotificationBell />
+                    <div ref={dropdownRef} className="relative pl-[34px] ">
 
-                            <button
-                                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                                onClick={handleLogout}
-                            >
-                                Logout
-                            </button>
-                        </div>
-                    )}
+                        <button
+                            onClick={() => setShowDropdown(prev => !prev)}
+                        >
+                            👤 {user.fullName}
+                        </button>
+
+                        {showDropdown && (
+                            <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg">
+                                <button
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                >
+                                    Profile
+                                </button>
+
+                                <button
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                    onClick={handleLogout}
+                                >
+                                    Logout
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </header>
 
 
-            <div className="flex min-h-screen">
+            <div className="flex flex-1">
 
                 <aside
                     className={`
@@ -99,11 +120,11 @@ function MainLayout() {
                         </h2>
 
                         <ul className="space-y-3">
-                            <li className="p-3 rounded hover:bg-gray-100 cursor-pointer"  onClick={()=>{navigate('/dashboard')}}   >
+                            <li className="p-3 rounded hover:bg-gray-100 cursor-pointer" onClick={() => { navigate('/dashboard') }}   >
                                 Dashboard
                             </li>
 
-                            <li className="p-3 rounded hover:bg-gray-100 cursor-pointer" onClick={()=>{navigate('/management')}}>
+                            <li className="p-3 rounded hover:bg-gray-100 cursor-pointer" onClick={() => { navigate('/management') }}>
                                 Management
                             </li>
 
