@@ -1,0 +1,258 @@
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { getNotifications } from "../../../services/notification.api";
+
+interface Notification {
+  _id: string;
+  title: string;
+  message: string;
+  createdAt: string;
+  isRead: boolean;
+}
+
+function NotificationInbox() {
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = Number(searchParams.get("page")) || 1;
+  const limit = Number(searchParams.get("limit")) || 10;
+  const q = searchParams.get("q") || "";
+  const status = searchParams.get("status") || "all";
+  const [search, setSearch] = useState("");
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  useEffect(() => {
+    const getNotificationList = async () => {
+      try {
+        const res = await getNotifications(page, limit, q, status);
+        setNotifications(res.data.data.notifications);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    getNotificationList();
+  }, [page, limit, q, status]);
+
+  return (
+    <div className="flex flex-col h-[650px]" >
+      <div className="flex flex-col  md:flex-row justify-between gap-4 mb-6">
+
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              setSearchParams({
+                page: "1",
+                limit: String(limit),
+                q: search,
+                status,
+              });
+            }
+          }}
+          className="
+    w-full
+    md:w-80
+    border
+    rounded-lg
+    px-4
+    py-2
+    outline-none
+    focus:ring-2
+    focus:ring-blue-500
+  "
+        />
+
+        <div className="flex gap-3">
+
+          <select
+            className="
+              border
+              rounded-lg
+              px-4
+              py-2
+              bg-white
+              outline-none
+              focus:ring-2
+              focus:ring-blue-500
+            "
+            onChange={(e) => {
+              setSearchParams({
+                page: String(page),
+                limit: String(limit),
+                q,
+                status: e.target.value,
+              });
+            }}
+          >
+            <option value="all">All</option>
+            <option value="unread">Unread</option>
+            <option value="read">Read</option>
+          </select>
+
+        </div>
+
+      </div>
+
+      {/* Table */}
+
+      <div className="flex-1 overflow-y-auto">
+
+        <table className="w-full">
+
+          <thead className="bg-gray-100">
+
+            <tr className="text-left">
+
+              <th className="px-5 py-3">Status</th>
+
+              <th className="px-5 py-3">Title</th>
+
+              <th className="px-5 py-3">Message</th>
+
+              <th className="px-5 py-3">Received</th>
+
+              <th className="px-5 py-3">Action</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>
+            {notifications.length>0 ?(
+            notifications.map((notification) => (
+    
+            <tr className="border-t hover:bg-gray-50"  key={notification._id}>
+
+              <td className="px-5 py-4">
+              <span
+                  className={`inline-block w-3 h-3 rounded-full ${
+                  notification.isRead ? "bg-gray-300" : "bg-blue-600"
+                  }`}
+                 />
+              </td>
+
+              <td className="px-5 py-4 font-semibold">
+              
+              {notification.title}
+              </td>
+
+              <td className="px-5 py-4 text-gray-600">
+               {notification. message}
+              </td>
+
+              <td className="px-5 py-4 text-gray-500">
+                {notification.createdAt}
+              </td>
+
+              <td className="px-5 py-4">
+                <button className="text-blue-600 hover:underline">
+                  View
+                </button>
+              </td>
+
+            </tr>
+            ))):(
+              <h4>No Notification</h4>
+            )}
+          </tbody>
+
+
+
+        </table>
+
+      </div>
+
+      {/* Pagination */}
+
+      <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
+
+        <p>
+          Showing 1–10 of 24 notifications
+        </p>
+
+        <div className="flex items-center gap-4">
+
+          {/* Rows Per Page */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">
+              Rows per page:
+            </span>
+
+            <select
+              value={limit}
+              onChange={(e) => {
+                setSearchParams({
+                  page: "1",
+                  limit: e.target.value,
+                  q,
+                  status,
+                });
+              }}
+              className="border rounded px-2 py-1"
+            >
+              <option>10</option>
+              <option>20</option>
+              <option>50</option>
+              <option>100</option>
+            </select>
+          </div>
+
+          {/* Previous */}
+          <button
+            className="
+        px-3
+        py-2
+        border
+        rounded
+        hover:bg-gray-100
+      "
+
+            onClick={() =>
+              setSearchParams({
+                page: String(page - 1),
+                limit: String(limit),
+                q,
+                status,
+              })
+            }
+          >
+            Previous
+          </button>
+
+          {/* Current Page */}
+          <span className="text-sm">
+            Page 1 of 3
+          </span>
+
+          {/* Next */}
+          <button
+            className="
+        px-3
+        py-2
+        border
+        rounded
+        hover:bg-gray-100
+      "
+            onClick={() =>
+              setSearchParams({
+                page: String(page + 1),
+                limit: String(limit),
+                q,
+                status,
+              })
+            }
+          >
+            Next
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+  );
+}
+
+export default NotificationInbox;

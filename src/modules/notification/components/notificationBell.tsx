@@ -4,6 +4,9 @@ import type { RootState } from "../../../app/store";
 import { useSelector } from "react-redux";
 import useClickOutside from "../../../hooks/useClickOutside";
 import { markAllNotificationAsRead } from "../../../services/notification.api"
+import { useDispatch } from "react-redux";
+import { markAllAsRead } from "../../../features/notification/notificationSlice";
+import { formatDistanceToNow } from "date-fns";
 
 interface IselectedNotificaton {
     id: string,
@@ -13,6 +16,8 @@ interface IselectedNotificaton {
     senderFullName: string
 }
 function NotificationBell() {
+    const dispatch = useDispatch();
+
     const dropdownRef = useClickOutside(() => setNotificationBellDropdown(false));
     const [notificationBellDropDown, setNotificationBellDropdown] = useState(false);
     const [showNotificationModal, setShowNotificationModal] = useState(false);
@@ -30,11 +35,18 @@ function NotificationBell() {
         ),
     ];
 
-
     const unreadCount = notifications.filter(
         notification => !notification.isRead
     ).length;
 
+    const markAllNotification = async () => {
+        try {
+            await markAllNotificationAsRead();
+            dispatch(markAllAsRead());
+        } catch (error) {
+            console.error(error);
+        }
+    }
     return (
         <div className="relative" ref={dropdownRef}>
 
@@ -94,8 +106,8 @@ function NotificationBell() {
                             Notifications
                         </h3>
 
-                        <button className="text-sm text-blue-600" onClick={()=>{
-                            markAllNotificationAsRead();
+                        <button className="text-sm text-blue-600" onClick={() => {
+                            markAllNotification();
                         }}>
                             Mark all as read
                         </button>
@@ -109,21 +121,23 @@ function NotificationBell() {
             "
                     >
 
-                        {sortedNotifications.map(notification => (
+                        {sortedNotifications.length > 0 ? (
+                            sortedNotifications.map(notification => (
 
-                            <div
-                                key={notification._id}
-                                onClick={() => {
-                                    setSeletedNotification({
-                                        id: notification._id,
-                                        title: notification.title,
-                                        message: notification.message,
-                                        date: notification.createdAt,
-                                        senderFullName: notification.senderUserId.fullName
-                                    });
-                                    setShowNotificationModal(true)}
-                                }
-                                className="
+                                <div
+                                    key={notification._id}
+                                    onClick={() => {
+                                        setSeletedNotification({
+                                            id: notification._id,
+                                            title: notification.title,
+                                            message: notification.message,
+                                            date: notification.createdAt,
+                                            senderFullName: notification.senderUserId.fullName
+                                        });
+                                        setShowNotificationModal(true)
+                                    }
+                                    }
+                                    className="
                   px-4
                   py-3
                   border-b
@@ -132,51 +146,56 @@ function NotificationBell() {
                   flex
                   gap-3
                 "
-                            >
+                                >
 
-                                {!notification.isRead && (
-                                    <span
-                                        className="
+                                    {!notification.isRead && (
+                                        <span
+                                            className="
                       mt-2
                       w-2
                       h-2
                       rounded-full
                       bg-blue-600
                     "
-                                    />
-                                )}
+                                        />
+                                    )}
 
 
-                                <div>
+                                    <div>
 
-                                    <h4
-                                        className={
-                                            !notification.isRead
-                                                ? "font-semibold"
-                                                : "font-medium"
-                                        }
-                                    >
-                                        {notification.title}
-                                    </h4>
+                                        <h4
+                                            className={
+                                                !notification.isRead
+                                                    ? "font-semibold"
+                                                    : "font-medium"
+                                            }
+                                        >
+                                            {notification.title}
+                                        </h4>
 
 
-                                    <p className="text-sm text-gray-500">
-                                        {notification.message}
-                                    </p>
+                                        <p className="text-sm text-gray-500">
+                                            {formatDistanceToNow(new Date(notification.createdAt), {
+                                                addSuffix: true,
+                                            })}
+                                        </p>
+
+                                    </div>
 
                                 </div>
 
-                            </div>
-                            
-                           
 
-                        ))}
+
+                            ))
+                        ) : (
+                            <h4>No Notifications</h4>
+                        )}
 
                     </div>
 
                 </div>
             )}
-            {showNotificationModal  && selectedNotification && (
+            {showNotificationModal && selectedNotification && (
                 <NotificationModal onClose={() => setShowNotificationModal(false)} notification={selectedNotification} />
             )}
 

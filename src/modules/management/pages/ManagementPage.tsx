@@ -72,12 +72,17 @@ function ManagementPage() {
         setSelectedUser(null);
         setShowNotificationModal(false);
       }
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ||
-        "Something went wrong"
-      );
-    }
+   } catch (err: any) {
+  console.log("reach here", err?.response?.data?.message);
+
+  const message = err?.response?.data?.message;
+
+  toast.error(
+    Array.isArray(message)
+      ? message.join(", ")
+      : message || "Something went wrong"
+  );
+}
   };
 
   const fetchChildren = async () => {

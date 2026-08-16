@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { markSpecificNotificationAsRead } from '../../../services/notification.api'
+import { useDispatch } from "react-redux";
+import { markAsRead } from "../../../features/notification/notificationSlice";
 
 interface IselectedNotificaton {
   id: string,
@@ -17,13 +19,15 @@ interface NotificationModalProps {
 
 function NotificationModal({ onClose, notification }: NotificationModalProps) {
 
+  const dispatch = useDispatch();
+  
   useEffect(()=>{
     const markNotificationAsRead=async()=>{
-      const res = await markSpecificNotificationAsRead(notification.id);
-      console.log("mark successfully",res);
+      await markSpecificNotificationAsRead(notification.id);
     };
+    dispatch(markAsRead(notification.id));
     markNotificationAsRead();
-  })
+  } , [])
 
   return (
     <div
@@ -98,7 +102,7 @@ function NotificationModal({ onClose, notification }: NotificationModalProps) {
             </p>
 
             <p className="text-gray-700">
-              {notification.title}
+              {notification.message}
             </p>
           </div>
 

@@ -11,7 +11,6 @@ export const connectSocket = (userId: string) => {
       socket = io(SOCKET_URL);
 
       socket.on("connect", () => {
-         console.log('socket connection established', socket?.id)
          socket?.emit('register', userId);
       })
    }

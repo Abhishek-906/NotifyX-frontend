@@ -8,11 +8,9 @@ function DashboardPage() {
 
   useEffect(() => {
     const fetchAdminCount = async () => {
-      console.log("reacg")
       try {
         const res = await getChildCount();
         setTotalAdmins(res.data.data);
-        console.log("totalAdmins", totalAdmins);
       } catch (error) {
         console.log(error);
       }

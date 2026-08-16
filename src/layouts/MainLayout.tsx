@@ -6,8 +6,9 @@ import NotificationBell from "../modules/notification/components/notificationBel
 import { getNotifications } from "../services/notification.api.ts";
 import { setNotifications } from "../features/notification/notificationSlice.ts";
 import { useDispatch } from "react-redux";
-
-
+import { getSocket } from "../services/socket";
+import { addNotification } from "../features/notification/notificationSlice.ts";
+import { toast } from "react-toastify";
 
 function MainLayout() {
     const user = getCurrentUser();
@@ -15,7 +16,6 @@ function MainLayout() {
     const dispatch = useDispatch();
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
 
     const handleLogout = async () => {
         localStorage.removeItem("token");
@@ -29,9 +29,25 @@ function MainLayout() {
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        const socket = getSocket();
+        if (!socket) return;
+
+        const handleNotification = (notification: any) => {
+            dispatch(addNotification(notification));
+            toast.info(`New Notification: ${notification.title}`)
+        };
+
+        socket.on("new_notification", handleNotification);
+
+        return () => {
+            socket.off("new_notification", handleNotification);
+        };
+    }, [dispatch]);
+
+    useEffect(() => {
         const fetchData = async () => {
             const res = await getNotifications();
-            dispatch(setNotifications(res.data.data));
+           dispatch(setNotifications(res.data.data.notifications));
         }
         fetchData();
 
@@ -118,7 +134,7 @@ function MainLayout() {
                         <h2 className="text-xl font-bold mb-8">
                             Menu
                         </h2>
-
+ 
                         <ul className="space-y-3">
                             <li className="p-3 rounded hover:bg-gray-100 cursor-pointer" onClick={() => { navigate('/dashboard') }}   >
                                 Dashboard
@@ -128,7 +144,7 @@ function MainLayout() {
                                 Management
                             </li>
 
-                            <li className="p-3 rounded hover:bg-gray-100 cursor-pointer">
+                            <li className="p-3 rounded hover:bg-gray-100 cursor-pointer" onClick={()=>{ navigate('/notification') }}>
                                 Notifications
                             </li>
                         </ul>

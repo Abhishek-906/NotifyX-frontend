@@ -7,6 +7,7 @@ import LoginPage from '../pages/LoginPage';
 import RegisterPage from "../pages/RegisterPage";
 import DashboardPage from "../pages/DashboardPage";
 import ManagementPage from "../modules/management/pages/ManagementPage";
+import NotificationsPage from "../pages/NotificationPage";
 
 function AppRoutes() {
   return (
@@ -24,6 +25,7 @@ function AppRoutes() {
         </ProtectedRoute>}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/management" element={<ManagementPage />} />
+          <Route path="/notification" element={<NotificationsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -4,7 +4,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from 'react-router-dom'
 import axios from "axios";
 import { toast } from "react-toastify";
-import {connectSocket} from "../services/socket.ts"
+import {connectSocket, getSocket} from "../services/socket.ts"
 
 function LoginPage() {
   const navigation = useNavigate();
