@@ -9,14 +9,7 @@ interface User {
   email: string;
 }
 
-const currentUsersString = localStorage.getItem("user");
 
-const currentUsers = currentUsersString
-  ? JSON.parse(currentUsersString)
-  : null;
-
-console.log("usersusers", currentUsers);
-console.log("role", currentUsers?.role);
 
 function SendNotification() {
   const [showRecipientModal, setShowRecipientModal] = useState(false);
@@ -24,6 +17,67 @@ function SendNotification() {
   const [message, setMessage] = useState("");
   const [selectedRecipients, setSelectedRecipients] = useState<User[]>([]);
   const [includeHierarchy, setIncludeHierarchy] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+
+
+
+  const currentUsersString = localStorage.getItem("user");
+
+const currentUsers = currentUsersString
+  ? JSON.parse(currentUsersString)
+  : null;
+
+
+ const handleSend = async () => {
+    if (!title.trim()) {
+      toast.error("Title is required");
+      return;
+    }
+
+    if (!message.trim()) {
+      toast.error("Message is required");
+      return;
+    }
+
+    if (selectedRecipients.length === 0) {
+      toast.error("Please select at least one recipient");
+      return;
+    }
+
+    const receiverUserIds = selectedRecipients.map(
+      (user) => user._id
+    );
+
+    try {
+      setIsSending(true);
+
+      await sendNotificationToMultiUser({
+        title: title.trim(),
+        message: message.trim(),
+        receiverUserIds,
+        includeHierarchy,
+      });
+
+      toast.success("Notification sent successfully");
+
+      setTitle("");
+      setMessage("");
+      setSelectedRecipients([]);
+      setIncludeHierarchy(false);
+
+    } catch (error: any) {
+      console.error("Failed to send notification:", error);
+
+      const errorMessage =
+        error.response?.data?.message ||
+        "Failed to send notification";
+
+      toast.error(errorMessage);
+
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   return (
     <div className="flex flex-col h-[650px]">
@@ -202,7 +256,7 @@ function SendNotification() {
                 <div>
                 <p className="text-sm font-medium text-gray-800">
                   Include users under selected admins
-                </p>ss
+                </p>
 
 </div>
                 <p className="text-xs text-gray-500 mt-1">
@@ -268,11 +322,8 @@ function SendNotification() {
 
         <button
           type="button"
-          onClick={ async()=>{
-            const recipientUserIds = selectedRecipients.map(user => user._id);
-          const res =await sendNotificationToMultiUser({ title, message, includeHierarchy,receiverUserIds: recipientUserIds })
-           toast.success("Notification send successfully", res);
-          }}
+          onClick={ handleSend }
+           disabled={isSending}
           className="
             px-6
             py-3
@@ -284,7 +335,7 @@ function SendNotification() {
             transition
           "
         >
-          Send Notification
+           {isSending ? "Sending..." : "Send Notification"}
         </button>
 
       </div>

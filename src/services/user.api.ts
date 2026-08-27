@@ -39,6 +39,17 @@ export const createUser = async(data: CreateUserData) => {
   return res;
 }
 
+export const blockUser = async(userId: string) => {
+  const token = localStorage.getItem('token');
+
+  const res = await axios.get(`${BASE_URL}/user/blockUser/${userId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+  return res;
+}
+
 export const getChildren = async(data: GetChildrenData) => {
   const token = localStorage.getItem("token");
 

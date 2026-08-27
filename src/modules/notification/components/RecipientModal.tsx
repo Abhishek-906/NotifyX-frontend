@@ -23,6 +23,9 @@ function RecipientModal({
     const [ids, setIds] = useState<string[]>(
         (selectedUsers ?? []).map(user => user._id)
     );
+    const [selectedRecipients, setSelectedRecipients] = useState<User[]>(
+        selectedUsers ?? []
+    );
 
     useEffect(() => {
         const timer = setTimeout(async () => {
@@ -41,11 +44,7 @@ function RecipientModal({
     }, [search]);
 
     const handleConfirm = () => {
-        const selectedUsers = recipients.filter((recipient) =>
-            ids.includes(recipient._id)
-        );
-
-        onConfirm(selectedUsers);
+        onConfirm(selectedRecipients);
     };
 
     return (
@@ -122,13 +121,35 @@ function RecipientModal({
                                     const allRecipientIds = recipients.map(
                                         recipient => recipient._id
                                     );
-                                    setIds(allRecipientIds);
+
+                                    setIds(prev => [
+                                        ...new Set([...prev, ...allRecipientIds])
+                                    ]);
+
+                                    setSelectedRecipients(prev => {
+                                        const existingIds = new Set(prev.map(user => user._id));
+
+                                        return [
+                                            ...prev,
+                                            ...recipients.filter(
+                                                recipient => !existingIds.has(recipient._id)
+                                            )
+                                        ];
+                                    });
                                 } else {
-                                    setIds([]);
+                                    const visibleIds = new Set(
+                                        recipients.map(recipient => recipient._id)
+                                    );
+
+                                    setIds(prev =>
+                                        prev.filter(id => !visibleIds.has(id))
+                                    );
+
+                                    setSelectedRecipients(prev =>
+                                        prev.filter(user => !visibleIds.has(user._id))
+                                    );
                                 }
                             }}
-
-
 
                             className="
                 w-4
@@ -168,8 +189,15 @@ function RecipientModal({
                                 onChange={(e) => {
                                     if (e.target.checked) {
                                         setIds(prev => [...prev, recipient._id]);
+                                        setSelectedRecipients(prev => [
+                                            ...prev,
+                                            recipient
+                                        ]);
                                     } else {
                                         setIds(prev => prev.filter(id => id !== recipient._id));
+                                        setSelectedRecipients(prev =>
+                                            prev.filter(user => user._id !== recipient._id)
+                                        );
                                     }
                                 }}
 

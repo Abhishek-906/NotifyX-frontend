@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import NotificationModal from './NotificationModal';
 import type { RootState } from "../../../app/store";
 import { useSelector } from "react-redux";
@@ -16,24 +17,24 @@ interface IselectedNotificaton {
     senderFullName: string
 }
 function NotificationBell() {
+    const navigate = useNavigate();
     const dispatch = useDispatch();
-
     const dropdownRef = useClickOutside(() => setNotificationBellDropdown(false));
     const [notificationBellDropDown, setNotificationBellDropdown] = useState(false);
     const [showNotificationModal, setShowNotificationModal] = useState(false);
-    const [selectedNotification, setSeletedNotification] = useState<IselectedNotificaton>(null);
+    const [selectedNotification, setSeletedNotification] = useState<IselectedNotificaton | null>(null);
 
     const notifications = useSelector((state: RootState) => state.notification.notifications);
 
     const sortedNotifications = [
         ...notifications.filter(
             notification => !notification.isRead
-        ),
+        ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
 
         ...notifications.filter(
             notification => notification.isRead
         ),
-    ];
+    ].slice(0, 10);
 
     const unreadCount = notifications.filter(
         notification => !notification.isRead
@@ -43,6 +44,7 @@ function NotificationBell() {
         try {
             await markAllNotificationAsRead();
             dispatch(markAllAsRead());
+            setNotificationBellDropdown(false);
         } catch (error) {
             console.error(error);
         }
@@ -57,12 +59,12 @@ function NotificationBell() {
                     <span
                         className="
                 absolute
-                -top-2
-                -right-2
+                -top-3
+                -right-3
                 bg-red-500
                 text-white
                 text-xs
-                w-5
+                w-6
                 h-5
                 rounded-full
                 flex
@@ -70,7 +72,7 @@ function NotificationBell() {
                 justify-center
               "
                     >
-                        {unreadCount}
+                        { unreadCount>9?`9+`: unreadCount}
                     </span>
                 )}
 
@@ -192,6 +194,10 @@ function NotificationBell() {
                         )}
 
                     </div>
+
+                    <button onClick={() => {navigate('/notification'); setNotificationBellDropdown(false)}  }>
+                        Show more
+                    </button>
 
                 </div>
             )}

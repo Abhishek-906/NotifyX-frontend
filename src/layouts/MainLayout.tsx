@@ -6,7 +6,7 @@ import NotificationBell from "../modules/notification/components/notificationBel
 import { getNotifications } from "../services/notification.api.ts";
 import { setNotifications } from "../features/notification/notificationSlice.ts";
 import { useDispatch } from "react-redux";
-import { getSocket } from "../services/socket";
+import { getSocket, connectSocket } from "../services/socket";
 import { addNotification } from "../features/notification/notificationSlice.ts";
 import { toast } from "react-toastify";
 
@@ -29,8 +29,8 @@ function MainLayout() {
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const socket = getSocket();
-        if (!socket) return;
+        const socket = connectSocket(user._id);
+
 
         const handleNotification = (notification: any) => {
             dispatch(addNotification(notification));
@@ -46,7 +46,7 @@ function MainLayout() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const res = await getNotifications();
+            const res = await getNotifications(1,20);
            dispatch(setNotifications(res.data.data.notifications));
         }
         fetchData();

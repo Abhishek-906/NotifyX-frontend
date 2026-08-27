@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createUser, getChildren } from '../../../services/user.api';
+import { createUser, getChildren, blockUser } from '../../../services/user.api';
 import { sendNotification } from '../../../services/notification.api';
 import { toast } from "react-toastify";
 import { useSearchParams } from "react-router-dom";
@@ -46,6 +46,17 @@ function ManagementPage() {
     q: searchParams.get("q") ?? undefined,
     status: searchParams.get("status") ?? undefined
   };
+
+  const handleBlock = async (id)=>{
+    try{
+     const res = blockUser(id);
+     
+     toast.success("User Blocked successfully");
+    }catch(err){
+      console.error(err.message);
+    }
+
+  }
 
   const handleSendNotification = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -535,12 +546,8 @@ function ManagementPage() {
                           Edit
                         </button>
 
-                        <button className="text-yellow-600 hover:underline">
+                        <button className="text-yellow-600 hover:underline" onClick={()=> handleBlock(child._id)}>
                           Block
-                        </button>
-
-                        <button className="text-red-500 hover:underline">
-                          Delete
                         </button>
                       </td>
                     </tr>
