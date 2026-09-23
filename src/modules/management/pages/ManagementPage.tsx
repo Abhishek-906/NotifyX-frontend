@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { createUser, getChildren, blockUser } from '../../../services/user.api';
+import { createUser, getChildren, updateUserBlockStatus } from '../../../services/user.api';
 import { sendNotification } from '../../../services/notification.api';
 import { toast } from "react-toastify";
 import { useSearchParams } from "react-router-dom";
+import axios from "axios";
 
 interface Child {
   _id: string;
@@ -32,6 +33,7 @@ function ManagementPage() {
     total: 0,
     totalPages: 1,
   });
+  const [refreshKey, setRefreshKey] = useState(0);
 
   //nofication
   const [showNotificationModal, setShowNotificationModal] = useState(false);
@@ -39,24 +41,35 @@ function ManagementPage() {
   const [message, setMessage] = useState('');
   const [selectedUser, setSelectedUser] = useState<Child | null>(null);
 
-  const childrenListFilter = {
-    parentId: searchParams.get("parentId") ?? undefined,
-    limit: Number(searchParams.get("limit") ?? 10),
-    page: Number(searchParams.get("page") ?? 1),
-    q: searchParams.get("q") ?? undefined,
-    status: searchParams.get("status") ?? undefined
-  };
+  const handleBlockStatus = async (user: Child) => {
+    const action = user.isBlocked ? "unblock" : "block";
+    const confirmed = window.confirm(
+      `Are you sure you want to ${action} ${user.fullName}?`,
+    );
 
-  const handleBlock = async (id)=>{
-    try{
-     const res = blockUser(id);
-     
-     toast.success("User Blocked successfully");
-    }catch(err){
-      console.error(err.message);
+    if (!confirmed) {
+      return;
     }
 
-  }
+    try {
+      await updateUserBlockStatus(user._id, action);
+      toast.success(
+        action === "block"
+          ? "User blocked successfully"
+          : "User unblocked successfully",
+      );
+      setRefreshKey((previous) => previous + 1);
+    } catch (error: unknown) {
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message
+        : undefined;
+      toast.error(
+        Array.isArray(message)
+          ? message.join(", ")
+          : message || "Unable to update user status",
+      );
+    }
+  };
 
   const handleSendNotification = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +97,6 @@ function ManagementPage() {
         setShowNotificationModal(false);
       }
    } catch (err: any) {
-  console.log("reach here", err?.response?.data?.message);
 
   const message = err?.response?.data?.message;
 
@@ -96,21 +108,38 @@ function ManagementPage() {
 }
   };
 
-  const fetchChildren = async () => {
-    try {
-      const res = await getChildren(childrenListFilter);
+ 
 
-      setChildrenList(res.data.data.children);
-      setChildrenPagination(res.data.data.pagination);
+useEffect(() => {
+  let cancelled = false;
+
+  const loadChildren = async () => {
+    try {
+      const res = await getChildren({
+        parentId: searchParams.get("parentId") ?? undefined,
+        limit: Number(searchParams.get("limit") ?? 10),
+        page: Number(searchParams.get("page") ?? 1),
+        q: searchParams.get("q") ?? undefined,
+        status: searchParams.get("status") ?? undefined,
+      });
+
+      if (!cancelled) {
+        setChildrenList(res.data.data.children);
+        setChildrenPagination(res.data.data.pagination);
+      }
     } catch {
-      toast.error("Failed to fetch admins");
+      if (!cancelled) {
+        toast.error("Failed to fetch admins");
+      }
     }
   };
 
+  void loadChildren();
 
-  useEffect(() => {
-    fetchChildren();
-  }, [searchParams]);
+  return () => {
+    cancelled = true;
+  };
+}, [searchParams, refreshKey]);
 
   useEffect(() => {
     setSearchText(searchParams.get("q") ?? "");
@@ -136,9 +165,10 @@ function ManagementPage() {
   const addUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (searchParams.get('parentId')) {
+      const parentId = searchParams.get("parentId");
+      if (parentId) {
         await createUser(
-          { fullName, email, password, parentId: searchParams.get('parentId') }
+          { fullName, email, password, parentId }
         );
       } else {
         await createUser(
@@ -151,7 +181,7 @@ function ManagementPage() {
       setEmail("");
       setPassword("");
       setShowAdminModal(false);
-      await fetchChildren();
+      setRefreshKey((previous) => previous + 1);
     } catch (err: any) {
       const message = err?.response?.data?.message;
 
@@ -546,8 +576,13 @@ function ManagementPage() {
                           Edit
                         </button>
 
-                        <button className="text-yellow-600 hover:underline" onClick={()=> handleBlock(child._id)}>
-                          Block
+                        <button
+                          className={child.isBlocked
+                            ? "text-blue-600 hover:underline"
+                            : "text-yellow-600 hover:underline"}
+                          onClick={() => void handleBlockStatus(child)}
+                        >
+                          {child.isBlocked ? "Unblock" : "Block"}
                         </button>
                       </td>
                     </tr>

@@ -19,8 +19,8 @@ interface IselectedNotificaton {
 function NotificationBell() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
+        const [notificationBellDropDown, setNotificationBellDropdown] = useState(false);
     const dropdownRef = useClickOutside(() => setNotificationBellDropdown(false));
-    const [notificationBellDropDown, setNotificationBellDropdown] = useState(false);
     const [showNotificationModal, setShowNotificationModal] = useState(false);
     const [selectedNotification, setSeletedNotification] = useState<IselectedNotificaton | null>(null);
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import RecipientModal from "./RecipientModal";
 import { sendNotificationToMultiUser } from "../../../services/notification.api";
 import { toast } from "react-toastify";

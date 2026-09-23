@@ -10,7 +10,7 @@ function DashboardPage() {
     const fetchAdminCount = async () => {
       try {
         const res = await getChildCount();
-        setTotalAdmins(res.data.data);
+        setTotalAdmins(res.data);
       } catch (error) {
         console.log(error);
       }

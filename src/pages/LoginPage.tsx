@@ -4,7 +4,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from 'react-router-dom'
 import axios from "axios";
 import { toast } from "react-toastify";
-import {connectSocket, getSocket} from "../services/socket.ts"
+import {connectSocket} from "../services/socket.ts"
 
 function LoginPage() {
   const navigation = useNavigate();
@@ -37,7 +37,8 @@ function LoginPage() {
         localStorage.setItem('token', result.data.token);
         localStorage.setItem('user', JSON.stringify(result.data.user));
 
-         connectSocket(result.data.user._id);
+        connectSocket(result.data.token);
+       //   connectSocket(result.data.user._id);
         toast.success("Login successfull");
         navigation('/dashboard');  
       }

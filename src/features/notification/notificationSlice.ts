@@ -46,7 +46,7 @@
           },
           markAsRead(state, action:PayloadAction<string>){
             const id  = action.payload;
-            let readedNotification = state.notifications.find(notification=>notification._id===id);
+            const readedNotification = state.notifications.find(notification=>notification._id===id);
             if (readedNotification) {
             readedNotification.isRead = true;
             }

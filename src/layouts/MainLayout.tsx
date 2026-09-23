@@ -1,17 +1,20 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
-import { getCurrentUser } from '../utils/auth'
+import { getCurrentUser, getCurrentToken } from '../utils/auth'
 import { disconnectSocket } from "../services/socket";
 import NotificationBell from "../modules/notification/components/notificationBell.tsx";
 import { getNotifications } from "../services/notification.api.ts";
 import { setNotifications } from "../features/notification/notificationSlice.ts";
 import { useDispatch } from "react-redux";
-import { getSocket, connectSocket } from "../services/socket";
+import { connectSocket } from "../services/socket";
 import { addNotification } from "../features/notification/notificationSlice.ts";
 import { toast } from "react-toastify";
+import type { NotificationItem } from "../features/notification/notificationSlice.ts";
+
 
 function MainLayout() {
     const user = getCurrentUser();
+    const token = getCurrentToken();
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
@@ -29,10 +32,12 @@ function MainLayout() {
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const socket = connectSocket(user._id);
+         if (!token) return;
+        const socket = connectSocket(token);
 
-
-        const handleNotification = (notification: any) => {
+        
+        const handleNotification = (notification: NotificationItem) => {
+            console.log("notification data i get in Mainlayout:", notification);
             dispatch(addNotification(notification));
             toast.info(`New Notification: ${notification.title}`)
         };

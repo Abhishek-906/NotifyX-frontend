@@ -17,6 +17,14 @@ interface GetChildrenData {
   status?: string;
 }
 
+interface getChildrenParam {
+  parentId?:string,
+  limit?:number,
+  page?:number,
+  q?:string,
+  status?:string
+}
+
 export const getChildCount = async() => {
   const token = localStorage.getItem('token');
 
@@ -25,7 +33,7 @@ export const getChildCount = async() => {
       Authorization: `Bearer ${token}`
     }
   });
-  return res.data.data ;
+  return res.data ;
 }
 
 export const createUser = async(data: CreateUserData) => {
@@ -39,10 +47,15 @@ export const createUser = async(data: CreateUserData) => {
   return res;
 }
 
-export const blockUser = async(userId: string) => {
+export type UserBlockAction = "block" | "unblock";
+
+export const updateUserBlockStatus = async (
+  userId: string,
+  action: UserBlockAction,
+) => {
   const token = localStorage.getItem('token');
 
-  const res = await axios.get(`${BASE_URL}/user/blockUser/${userId}`, {
+  const res = await axios.patch(`${BASE_URL}/user/blockUser/${userId}`, { action }, {
     headers: {
       Authorization: `Bearer ${token}`
     }
@@ -53,7 +66,7 @@ export const blockUser = async(userId: string) => {
 export const getChildren = async(data: GetChildrenData) => {
   const token = localStorage.getItem("token");
 
-  const params: any = {};
+  const params: getChildrenParam = {};
 
   if (data.parentId) params.parentId = data.parentId;
   if (data.limit) params.limit = data.limit;
